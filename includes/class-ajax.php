@@ -354,12 +354,11 @@ class WeForms_Ajax {
      */
     public function save_settings() {
         check_ajax_referer( 'weforms' );
-
         $this->check_admin();
 
         $requires_wpuf_update = false;
         $wpuf_update_array    = array();
-        $settings             = isset( $_POST['settings'] ) ? (array) json_decode( sanitize_text_field(  wp_unslash( $_POST['settings'] ) ) ) : [];
+        $settings             = isset( $_POST['settings'] ) ? (array) json_decode( wp_unslash( $_POST['settings'] ) ) : [];
         update_option( 'weforms_settings', $settings );
 
         // wpuf settings sync
@@ -372,6 +371,7 @@ class WeForms_Ajax {
             $requires_wpuf_update                   = true;
             $wpuf_update_array['recaptcha_public']  = $settings['recaptcha']->key;
             $wpuf_update_array['recaptcha_private'] = $settings['recaptcha']->secret;
+            $wpuf_update_array['recaptcha_type']    = $settings['recaptcha']->type;
         }
 
         if ( isset( $settings['no_conflict'] ) ) {
@@ -394,7 +394,6 @@ class WeForms_Ajax {
         do_action( 'weforms_save_settings', $settings );
 
         $settings = apply_filters( 'weforms_after_save_settings', $settings );
-
         wp_send_json_success( $settings );
     }
 
@@ -409,7 +408,6 @@ class WeForms_Ajax {
         $this->check_admin();
 
         $settings = weforms_get_settings();
-
         // checking to prevent js error, will be removed in future
         if ( !isset( $settings['credit'] ) ) {
             $settings['credit'] = false;
